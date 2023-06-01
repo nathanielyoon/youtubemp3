@@ -4,13 +4,15 @@ import urllib
 import csv
 import time
 
+from starlette import applications, requests, responses, routing, staticfiles
+
 import download
 
 
 OUTPUT = os.path.join(pathlib.Path(__file__).parent.resolve(), "output")
 
 
-def page(request: Request, content: str) -> str:
+def page(request: requests.Request, content: str) -> str:
     if request.headers.get("hx-boosted"):
         return content
     return f'''
@@ -39,7 +41,7 @@ def page(request: Request, content: str) -> str:
     '''
 
 
-async def index(request: Request):
+async def index(request: requests.Request):
     url = "https://www.youtube.com/watch?v=9bZkp7q19f0"
     guide = f'''
     <h1>Guide</h1>
@@ -130,7 +132,7 @@ async def index(request: Request):
     '''))
 
 
-async def new_download(request: Request):
+async def new_download(request: requests.Request):
     form = await request.form()
     if request.method == "GET" or "url" not in form:
         return responses.RedirectResponse("/", status_code=303)
@@ -159,7 +161,7 @@ async def new_download(request: Request):
     '''))
 
 
-async def downloaded(request: Request):
+async def downloaded(request: requests.Request):
     youtube_id = request.path_params["youtube_id"]
     directory = os.path.join(OUTPUT, youtube_id)
     if (not os.path.exists(directory) or len(os.listdir(directory)) != 1):
@@ -184,7 +186,6 @@ async def downloaded(request: Request):
 
 
 app = applications.Starlette(
-    debug=True,
     routes=[
         routing.Route("/", index),
         routing.Route("/download", new_download, methods=["GET", "POST"]),
