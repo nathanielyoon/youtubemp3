@@ -17,11 +17,10 @@ def page(request: requests.Request, content: str) -> str:
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width,initial-scale=1">
-            <title id="title">youtube mp3</title>
+            <title id="title">Youtube to MP3</title>
             <link rel="icon" href="/static/smile.ico">
             <link rel="stylesheet" href="/static/pure-min.css">
             <link rel="stylesheet" href="/static/grids-responsive-min.css">
-            <script src="/static/htmx.min.js"></script>
         </head>
         <style>
             body>main{{max-width:60em;margin:0 auto}}
@@ -65,25 +64,7 @@ async def index(request: requests.Request):
         </main>
     </article>
     <article>
-        <header>3. Press "Submit" and wait</header>
-        <main>
-            <form
-                action="javascript:void(0)"
-                class="pure-form pure-form-stacked"
-            >
-                <label for="url">Youtube URL</label>
-                <input id="url" class="pure-input-1" readonly value={url}>
-                <input
-                    type="submit"
-                    class="pure-button pure-button-primary pure-button-active"
-                    style="pointer-events:none"
-                >
-                <img src="/static/bars.png">
-            </form>
-        </main>
-    </article>
-    <article>
-        <header>4. MP3 file should download!</header>
+        <header>3. Press "Submit" and wait for download</header>
     </article>
     '''
     form = f'''
@@ -103,12 +84,6 @@ async def index(request: requests.Request):
             class="pure-input-1"
         >
         <input type="submit" class="pure-button pure-button-primary">
-        <img
-            class="htmx-indicator"
-            src="/static/bars.svg"
-            style="display:none"
-            hx-on="load:this.style.removeProperty('display')"
-        >
     </form>
     '''
     return responses.HTMLResponse(page(request, f'''
