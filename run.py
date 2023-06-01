@@ -64,7 +64,7 @@ async def index(request: requests.Request):
         </main>
     </article>
     <article>
-        <header>3. Press "Submit" and wait for download</header>
+        <header>3. Submit and wait for download</header>
     </article>
     '''
     form = f'''
