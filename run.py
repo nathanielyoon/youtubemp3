@@ -99,12 +99,22 @@ async def download(request: requests.Request):
     if request.method == "GET" or "url" not in form:
         return responses.RedirectResponse("/", status_code=303)
     audio = pytube.YouTube(form["url"]).streams.get_audio_only()
-    return responses.StreamingResponse(
-        pytube.request.stream(audio.url),
-        headers={
-            "Content-Disposition": f'attachment; filename="{audio.title}.mp3"'
-        }
-    )
+    try:
+        return responses.StreamingResponse(
+            pytube.request.stream(audio.url),
+            headers={
+                "Content-Disposition":
+                    f'attachment; filename="{audio.title}.mp3"'
+            }
+        )
+    except UnicodeEncodeError:
+        return responses.StreamingResponse(
+            pytube.request.stream(audio.url),
+            headers={
+                "Content-Disposition":
+                    f'attachment; filename="download.mp3"'
+            }
+        )
 
 
 app = applications.Starlette(
