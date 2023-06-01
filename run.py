@@ -192,7 +192,3 @@ app = applications.Starlette(
         routing.Mount("/static", staticfiles.StaticFiles(directory="static"))
     ]
 )
-
-
-if __name__ == "__main__":
-    uvicorn.run("run:app", host="0.0.0.0", port=8080, reload=True)
