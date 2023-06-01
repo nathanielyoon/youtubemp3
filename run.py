@@ -1,12 +1,8 @@
 import os
 import pathlib
-import urllib
-import csv
-import time
 
 from starlette import applications, requests, responses, routing, staticfiles
-
-import download
+import pytube
 
 
 OUTPUT = os.path.join(pathlib.Path(__file__).parent.resolve(), "output")
@@ -87,23 +83,14 @@ async def index(request: requests.Request):
         </main>
     </article>
     <article>
-        <header>4. Download the MP3 file</header>
-        <main>
-            <a
-                style="pointer-events:none"
-                class="pure-button pure-button-primary"
-            >Download MP3 file</a>
-        </main>
+        <header>4. MP3 file should download!</header>
     </article>
     '''
     form = f'''
     <h1>Download MP3</h1>
     <form
-        hx-post="/download"
-        hx-boost="true"
-        hx-push-url="true"
-        hx-target="this"
-        hx-swap="outerHTML"
+        action="/download"
+        method="POST"
         class="pure-form pure-form-stacked"
     >
         <label for="url">Youtube URL</label>
@@ -132,64 +119,23 @@ async def index(request: requests.Request):
     '''))
 
 
-async def new_download(request: requests.Request):
+async def download(request: requests.Request):
     form = await request.form()
     if request.method == "GET" or "url" not in form:
         return responses.RedirectResponse("/", status_code=303)
-    download.download_url(form["url"])
-    keys, count = [], 0
-    while not (youtube_id := [key for key in keys if key in form["url"]]):
-        if count > 30:
-            return responses.HTMLResponse(page(request, f'''
-            <p>URL "{form["url"]}" took too long to download, try again</p>
-            <br>
-            <a
-                href="/"
-                class="pure-button pure-button-primary"
-                hx-boost="true"
-            >Go back</a>
-            '''))
-        time.sleep(1)
-        count += 1
-        with open(os.path.join(OUTPUT, "downloads.csv"), "r") as csv_file:
-            keys = [row["youtube_id"] for row in csv.DictReader(csv_file)]
-    return responses.HTMLResponse(page(request, f'''
-    <a
-        href="/downloaded/{youtube_id[-1]}"
-        class="pure-button pure-button-primary"
-    >Download MP3 file</a>
-    '''))
-
-
-async def downloaded(request: requests.Request):
-    youtube_id = request.path_params["youtube_id"]
-    directory = os.path.join(OUTPUT, youtube_id)
-    if (not os.path.exists(directory) or len(os.listdir(directory)) != 1):
-        return responses.HTMLResponse(page(request, f'''
-        <div>File not found, download may still be in progress.</div>
-        <a
-            hx-on="click:
-                document.getElementById('retry').removeAttribute('hidden')"
-            class="pure-button"
-        >Try again</a>
-        <a
-            id="retry"
-            href
-            hidden
-            class="pure-button pure-button-primary"
-        >Refresh</a>
-        '''))
-    file_name = os.listdir(directory)[-1]
-    return responses.FileResponse(
-        f'{directory}/{file_name}', media_type="mp3", filename=file_name
+    audio = pytube.YouTube(form["url"]).streams.get_audio_only()
+    return responses.StreamingResponse(
+        pytube.request.stream(audio.url),
+        headers={
+            "Content-Disposition": f'attachment; filename="{audio.title}.mp3"'
+        }
     )
 
 
 app = applications.Starlette(
     routes=[
         routing.Route("/", index),
-        routing.Route("/download", new_download, methods=["GET", "POST"]),
-        routing.Route("/downloaded/{youtube_id}", downloaded),
+        routing.Route("/download", download, methods=["GET", "POST"]),
         routing.Mount("/static", staticfiles.StaticFiles(directory="static"))
     ]
 )
