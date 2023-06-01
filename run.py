@@ -23,7 +23,7 @@ def page(request: requests.Request, content: str) -> str:
             <link rel="stylesheet" href="/static/grids-responsive-min.css">
         </head>
         <style>
-            body>main{{max-width:60em;margin:0 auto}}
+            body{{padding:1rem}}body>main{{max-width:60em;margin:0 auto}}
             article{{margin:1em 0;border:thin solid lightgray;max-width:
             90%;box-shadow:0 3px 8px 2px rgba(0,0,0,0.1);}}
             article>header{{font-weight:bold;font-size:1.5em;padding:0.5rem;
